@@ -129,4 +129,4 @@ từ phía VNPay.
 - [x] Triển khai Kubernetes (Docker Desktop)
 - [x] ArgoCD GitOps (auto-sync + self-heal đã kiểm chứng)
 - [x] CI/CD GitHub Actions → Docker Hub
-- [ ] Tài liệu Word tổng kết kiến trúc & vận hành
+- [x] Tài liệu Word tổng kết kiến trúc & vận hành — [`docs/MocStore-DevOps.docx`](docs/MocStore-DevOps.docx)
