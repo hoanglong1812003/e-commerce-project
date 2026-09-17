@@ -1,0 +1,20 @@
+# Frontend's own nginx already proxies /api and /uploads to the backend Service
+# (see frontend/nginx.conf), so the Ingress only needs a single catch-all rule.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: ecommerce
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: e-commerce.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
