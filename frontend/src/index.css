@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+
+  --color-brand-50: #f1faf6;
+  --color-brand-100: #dcf2e6;
+  --color-brand-200: #b3e2cb;
+  --color-brand-300: #82ccac;
+  --color-brand-400: #52b088;
+  --color-brand-500: #33936d;
+  --color-brand-600: #257656;
+  --color-brand-700: #1f5e46;
+  --color-brand-800: #1b4b39;
+  --color-brand-900: #173e30;
+  --color-brand-950: #0b241c;
+
+  --color-accent-300: #f8cf7a;
+  --color-accent-400: #f4b942;
+  --color-accent-500: #e89c1f;
+  --color-accent-600: #c97f12;
+  --color-accent-700: #a3630c;
+
+  --color-ink-50: #faf9f7;
+  --color-ink-100: #f2f0ec;
+  --color-ink-200: #e5e1da;
+  --color-ink-300: #d1cbc0;
+  --color-ink-400: #a89f8e;
+  --color-ink-500: #7d7364;
+  --color-ink-600: #5c5346;
+  --color-ink-700: #443d33;
+  --color-ink-800: #2f2a23;
+  --color-ink-900: #201c17;
+}
+
+body {
+  @apply bg-ink-50 text-ink-800 antialiased;
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+::selection {
+  @apply bg-brand-200 text-brand-900;
+}
