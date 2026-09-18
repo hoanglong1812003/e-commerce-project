@@ -22,6 +22,10 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Office lock files
+~$*.docx
+~$*.doc
+
 # Editor
 .vscode/
 .idea/
