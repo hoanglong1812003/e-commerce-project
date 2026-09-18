@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: longshen4444/e-commerce:frontend-latest
+          image: longshen4444/e-commerce:frontend-604f553
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
