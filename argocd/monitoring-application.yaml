@@ -27,6 +27,20 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
+  # Newer Kubernetes versions (1.34+) added .status.terminatingReplicas to
+  # StatefulSet/Deployment, which older ArgoCD builds don't know about yet and fail
+  # to diff ("field not declared in schema"). The .status subresource is never part
+  # of desired state anyway, so it's safe to skip entirely for this Application.
+  # https://github.com/argoproj/gitops-engine/issues/558
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /status
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /status
   syncPolicy:
     automated:
       prune: true
