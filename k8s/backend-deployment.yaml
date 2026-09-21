@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: longshen4444/e-commerce:backend-308bb24
+          image: longshen4444/e-commerce:backend-91c53f9
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4000
