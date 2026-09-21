@@ -7,14 +7,17 @@ const productRoutes = require("./routes/product.routes");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
+const { metricsMiddleware, metricsHandler } = require("./utils/metrics");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(metricsMiddleware);
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/metrics", metricsHandler);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

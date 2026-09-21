@@ -11,6 +11,7 @@ Docker Hub.
 backend/    Node.js + Express + Prisma + PostgreSQL — REST API, JWT auth, RBAC, VNPay sandbox
 frontend/   React + Vite + Tailwind CSS — giao diện khách hàng & trang quản trị
 k8s/        Kubernetes manifests (Deployment, Service, Ingress, PVC, Secret...)
+monitoring/ Prometheus + Grafana (kube-prometheus-stack) — giám sát cluster & backend
 argocd/     ArgoCD Application — GitOps
 .github/    GitHub Actions CI/CD pipeline
 ```
@@ -92,7 +93,59 @@ kubectl port-forward svc/argocd-server -n argocd 8081:443
 Từ đây, mọi thay đổi trong thư mục `k8s/` được push lên nhánh `main` sẽ được ArgoCD tự động phát hiện
 và đồng bộ vào cluster (`automated.prune + selfHeal` đã bật trong `argocd/application.yaml`).
 
-## 5. CI/CD — GitHub Actions → Docker Hub → ArgoCD
+## 5. Giám sát với Prometheus + Grafana
+
+Stack `kube-prometheus-stack` (Prometheus + Grafana + Alertmanager + node-exporter +
+kube-state-metrics) chạy self-hosted ngay trên cùng cluster Kubernetes (Docker Desktop) với
+dự án — không cần máy/VM riêng, vì Prometheus scrape metrics qua Kubernetes service discovery
+nên phải ở cùng cluster với các pod cần giám sát.
+
+Backend expose sẵn endpoint `GET /metrics` (dùng `prom-client`) với số liệu request HTTP
+(tổng số request, latency theo route/status code) cộng với metrics runtime Node.js mặc định
+(CPU, memory, event loop lag, GC...). `monitoring/backend-servicemonitor.yaml` khai báo cho
+Prometheus tự động scrape endpoint này.
+
+### Cài đặt qua ArgoCD (khuyến nghị, đồng bộ GitOps)
+
+```bash
+kubectl apply -f argocd/monitoring-application.yaml
+```
+
+ArgoCD sẽ tự tạo namespace `monitoring`, cài chart `kube-prometheus-stack` với giá trị tùy
+biến trong `monitoring/values.yaml`, cùng Ingress cho Grafana và ServiceMonitor cho backend.
+
+### Hoặc cài trực tiếp bằng Helm (không qua ArgoCD)
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl apply -f monitoring/namespace.yaml
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  --namespace monitoring -f monitoring/values.yaml
+kubectl apply -f monitoring/grafana-ingress.yaml -f monitoring/backend-servicemonitor.yaml
+```
+
+### Truy cập Grafana
+
+Thêm dòng sau vào hosts file (`C:\Windows\System32\drivers\etc\hosts`, cần quyền admin):
+
+```
+127.0.0.1  grafana.local
+```
+
+Mở http://grafana.local — đăng nhập `admin` / `Admin@123` (đặt trong `monitoring/values.yaml`,
+nên đổi trước khi dùng thật). Dashboard "Kubernetes / Compute Resources" và "Node Exporter" có
+sẵn ngay sau khi cài. Muốn xem metrics backend, tạo dashboard mới truy vấn các chỉ số
+`http_requests_total`, `http_request_duration_seconds_*`.
+
+Không muốn cấu hình Ingress? Dùng port-forward:
+
+```bash
+kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+# http://localhost:3000
+```
+
+## 6. CI/CD — GitHub Actions → Docker Hub → ArgoCD
 
 `.github/workflows/ci-cd.yaml` chạy khi push lên `main` (trừ khi chỉ sửa `k8s/**` hoặc `*.md`):
 
@@ -129,4 +182,5 @@ từ phía VNPay.
 - [x] Triển khai Kubernetes (Docker Desktop)
 - [x] ArgoCD GitOps (auto-sync + self-heal đã kiểm chứng)
 - [x] CI/CD GitHub Actions → Docker Hub
+- [x] Giám sát Prometheus + Grafana (self-hosted trên cùng cluster)
 - [x] Tài liệu Word tổng kết kiến trúc & vận hành — [`docs/MocStore-DevOps.docx`](docs/MocStore-DevOps.docx)

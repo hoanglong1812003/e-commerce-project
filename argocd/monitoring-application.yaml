@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # 1) The kube-prometheus-stack Helm chart (Prometheus + Grafana + Alertmanager + exporters),
+    #    using values.yaml from this Git repo's monitoring/ folder (referenced as $values below).
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 91.4.1
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/monitoring/values.yaml
+    # 2) This Git repo: supplies the values file above (ref: values) AND applies the plain
+    #    manifests in monitoring/ (namespace, Grafana Ingress, backend ServiceMonitor).
+    #    values.yaml is excluded here since it's a Helm values file, not a k8s manifest.
+    - repoURL: https://github.com/hoanglong1812003/e-commerce-project.git
+      targetRevision: main
+      path: monitoring
+      ref: values
+      directory:
+        exclude: "values.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

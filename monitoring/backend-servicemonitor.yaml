@@ -1,0 +1,26 @@
+# Tells Prometheus (deployed by kube-prometheus-stack) to scrape the backend's /metrics
+# endpoint. Lives in the monitoring namespace but selects the Service by label across
+# namespaces (namespaceSelector), so it can target the backend Service in "ecommerce".
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ecommerce-backend
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+  annotations:
+    # Runs after the Helm chart source (wave 0) so the ServiceMonitor CRD exists first.
+    # If the very first sync still races the CRD install, ArgoCD's selfHeal will
+    # automatically re-apply this resource once the CRD is available.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  namespaceSelector:
+    matchNames:
+      - ecommerce
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

@@ -1,0 +1,61 @@
+# Helm values for the kube-prometheus-stack chart (Prometheus + Grafana + Alertmanager).
+# Trimmed down for a single-node Docker Desktop Kubernetes cluster (no HA, small storage).
+# Full default values: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
+
+grafana:
+  enabled: true
+  adminPassword: "Admin@123"
+  defaultDashboardsEnabled: true
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: true
+    size: 1Gi
+  # Let Grafana auto-discover dashboards/datasources; Prometheus datasource is wired
+  # automatically by the chart via sub-chart integration.
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+    # Allow Prometheus to discover ServiceMonitors/PodMonitors from ANY namespace
+    # (default kube-prometheus-stack behavior restricts to release namespace + own labels).
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+# Node-level and cluster-level metrics (CPU/RAM per node, pod/deployment counts, etc.)
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+# These kubeadm-cluster-only checks fail noisily on managed/Docker Desktop control planes;
+# disable to avoid permanently-down targets cluttering Prometheus.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
