@@ -33,3 +33,9 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # kube-prometheus-stack's CRDs (Prometheus, Alertmanager, ScrapeConfig...) are too
+      # large to fit in the kubectl.kubernetes.io/last-applied-configuration annotation
+      # (262144 byte limit) used by client-side "kubectl apply". Server-side apply avoids
+      # that annotation entirely. See:
+      # https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/#server-side-apply
+      - ServerSideApply=true
